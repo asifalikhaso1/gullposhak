@@ -706,6 +706,250 @@ footer {
         </div>
     </footer>
 
-    <script src="js/main.js"></script>
+    <script src="js/main.js">// Loading Animation
+document.addEventListener('DOMContentLoaded', () => {
+    const loading = document.createElement('div');
+    loading.className = 'loading';
+    document.body.appendChild(loading);
+
+    // Remove loading screen after content is loaded
+    window.addEventListener('load', () => {
+        loading.style.opacity = '0';
+        setTimeout(() => {
+            loading.remove();
+        }, 500);
+    });
+});
+
+// Navbar Scroll Effect
+window.addEventListener('scroll', () => {
+    const navbar = document.querySelector('.navbar');
+    if (window.scrollY > 50) {
+        navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+        navbar.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+    } else {
+        navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+        navbar.style.boxShadow = 'none';
+    }
+});
+
+// Bestsellers Auto Slider
+const productSlider = document.querySelector('.product-slider');
+const prevBtn = document.querySelector('.prev-btn');
+const nextBtn = document.querySelector('.next-btn');
+let autoScrollInterval;
+let isMouseOver = false;
+let scrollSpeed = 2; // Increased speed for smoother loop
+
+// Clone the initial cards and append them to create infinite scroll effect
+const initializeSlider = () => {
+    const originalCards = document.querySelectorAll('.product-card');
+    
+    // Clone cards and add them before the original cards (2 sets)
+    for (let i = 0; i < 2; i++) {
+        originalCards.forEach(card => {
+            const preClone = card.cloneNode(true);
+            productSlider.insertBefore(preClone, productSlider.firstChild);
+        });
+    }
+    
+    // Clone cards and add them after the original cards (2 sets)
+    for (let i = 0; i < 2; i++) {
+        originalCards.forEach(card => {
+            const postClone = card.cloneNode(true);
+            productSlider.appendChild(postClone);
+        });
+    }
+
+    // Set initial scroll position to the original cards
+    setTimeout(() => {
+        productSlider.scrollLeft = productSlider.clientWidth * 2;
+    }, 100);
+};
+
+// Auto scroll function with smoother loop
+const autoScroll = () => {
+    if (!isMouseOver) {
+        productSlider.scrollLeft += scrollSpeed;
+        
+        // When reaching the end of the cloned set, reset to the original set
+        if (productSlider.scrollLeft >= productSlider.scrollWidth - productSlider.clientWidth - 10) {
+            productSlider.scrollLeft = productSlider.clientWidth * 2;
+        }
+        // When reaching the beginning of the cloned set, reset to the end of original set
+        else if (productSlider.scrollLeft <= 10) {
+            productSlider.scrollLeft = productSlider.scrollWidth - (productSlider.clientWidth * 3);
+        }
+    }
+};
+
+// Initialize auto scroll with faster interval
+const startAutoScroll = () => {
+    autoScrollInterval = setInterval(autoScroll, 16); // ~60fps for smoother animation
+};
+
+// Pause on hover with smooth transition
+productSlider.addEventListener('mouseenter', () => {
+    isMouseOver = true;
+    productSlider.style.transition = 'scroll-behavior 0.3s ease';
+});
+
+productSlider.addEventListener('mouseleave', () => {
+    isMouseOver = false;
+    productSlider.style.transition = 'scroll-behavior 0.3s ease';
+});
+
+// Manual navigation with infinite scroll effect
+nextBtn.addEventListener('click', () => {
+    const scrollAmount = 320;
+    const maxScroll = productSlider.scrollWidth - productSlider.clientWidth;
+    
+    if (productSlider.scrollLeft + scrollAmount >= maxScroll - 10) {
+        productSlider.scrollLeft = productSlider.clientWidth * 2;
+    } else {
+        productSlider.scrollBy({
+            left: scrollAmount,
+            behavior: 'smooth'
+        });
+    }
+});
+
+prevBtn.addEventListener('click', () => {
+    const scrollAmount = -320;
+    
+    if (productSlider.scrollLeft + scrollAmount <= 10) {
+        productSlider.scrollLeft = productSlider.scrollWidth - (productSlider.clientWidth * 3);
+    } else {
+        productSlider.scrollBy({
+            left: scrollAmount,
+            behavior: 'smooth'
+        });
+    }
+});
+
+// Handle scroll transitions with smoother reset
+productSlider.addEventListener('scroll', () => {
+    if (productSlider.scrollLeft <= 10) {
+        productSlider.scrollLeft = productSlider.scrollWidth - (productSlider.clientWidth * 3);
+    } else if (productSlider.scrollLeft >= productSlider.scrollWidth - productSlider.clientWidth - 10) {
+        productSlider.scrollLeft = productSlider.clientWidth * 2;
+    }
+});
+
+// Initialize slider and start auto scroll
+initializeSlider();
+startAutoScroll();
+
+// Shopping Cart functionality
+let cartItems = [];
+
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('add-to-cart')) {
+        const card = e.target.closest('.product-card');
+        const product = {
+            name: card.querySelector('h3').textContent,
+            price: card.querySelector('p').textContent
+        };
+        
+        cartItems.push(product);
+        showNotification('Item added to cart!');
+    }
+});
+
+// Header buttons functionality
+document.getElementById('search-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    showNotification('Search feature coming soon!');
+});
+
+document.getElementById('wishlist-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    showNotification('Wishlist feature coming soon!');
+});
+
+document.getElementById('cart-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (cartItems.length === 0) {
+        showNotification('Your cart is empty!');
+    } else {
+        showNotification(`${cartItems.length} items in your cart`);
+    }
+});
+
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    
+    // Style the notification
+    Object.assign(notification.style, {
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        background: '#333',
+        color: 'white',
+        padding: '1rem 2rem',
+        borderRadius: '5px',
+        animation: 'slideIn 0.3s ease-out'
+    });
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Add notification animations to stylesheet
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+
+// Smooth scroll for navigation links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+    });
+});
+
+// Intersection Observer for animations
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+// Animate sections on scroll
+document.querySelectorAll('.collection-item, .product-card, .about-content, .contact-content').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    observer.observe(el);
+}); </script>
 </body>
 </html>
